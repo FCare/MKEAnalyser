@@ -34,8 +34,12 @@ void MKEAnalyzer::getDataBus(U8 *data) {
 
 void MKEAnalyzer::advanceAllToNextEdge(input_s channel) {
 	U64 sampleNb = mMKE[channel]->GetSampleOfNextEdge();
+	if (channel == CDHWR) printf("Sample %d\n", sampleNb);
 	for (int i = 0; i< CD_MAX; i++) {
-		mMKE[i]->AdvanceToAbsPosition(sampleNb);
+		if (i != channel)
+			mMKE[i]->AdvanceToAbsPosition(sampleNb - 1 );
+		else
+			mMKE[i]->AdvanceToAbsPosition(sampleNb);
 	}
 }
 
@@ -67,6 +71,7 @@ void MKEAnalyzer::WorkerThread()
 
 	        U8 data[16] = {0};
 
+					advanceAllToNextEdge(CDHWR);
 					getDataBus(&data[0]);
 
 					if (mMKE[CDCMD]->GetBitState() == BIT_LOW) mFlags |= CMD_MODE;
@@ -106,11 +111,10 @@ void MKEAnalyzer::WorkerThread()
 						default:
 						break;
 					}
-					advanceAllToNextEdge(CDHWR);
 					for (int i = 1; i < (nbSentPacket + 1); i++) {
 						advanceAllToNextEdge(CDHWR);
-						getDataBus(&data[i]);
 						advanceAllToNextEdge(CDHWR);
+						getDataBus(&data[i]);
 					}
 
 					switch(data[0]) {
@@ -121,7 +125,7 @@ void MKEAnalyzer::WorkerThread()
 					}
 
 	        // if (mMKE[CDCMD]->GetBitState() == BIT_LOW)
-	        mFlags |= READ_WRITE_FLAG; //Only take care of write for now
+	        mFlags |= READ_WRITE_FLAG;
 
 					U64 frame_endinging_sample = mMKE[CDHWR]->GetSampleNumber();
 
@@ -148,6 +152,7 @@ void MKEAnalyzer::WorkerThread()
 
 					for (int i = 0; i < nbStatusPacket; i++) {
 						if (mMKE[CDHRD]->GetBitState() == BIT_HIGH) advanceAllToNextEdge(CDHRD);
+						advanceAllToNextEdge(CDHRD);
 						getDataBus(&data[i]);
 
 						mFlags |= STATUS_MODE;
@@ -155,7 +160,6 @@ void MKEAnalyzer::WorkerThread()
 						if (mMKE[CDCMD]->GetBitState() == BIT_LOW) mFlags |= CMD_MODE;
 						else mFlags |= DATA_MODE;
 
-						advanceAllToNextEdge(CDHRD);
 						frame.mEndingSampleInclusive = mMKE[CDHRD]->GetSampleNumber();
 					}
 
@@ -192,7 +196,7 @@ U32 MKEAnalyzer::GenerateSimulationData(U64 minimum_sample_index, U32 device_sam
 
 U32 MKEAnalyzer::GetMinimumSampleRateHz()
 {
-    return 10000; //Doesnt really matter
+    return 20000000; //Doesnt really matter
 }
 
 const char *MKEAnalyzer::GetAnalyzerName() const

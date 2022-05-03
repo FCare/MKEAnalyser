@@ -2,6 +2,7 @@
 #define MKE_ANALYZER_RESULTS
 
 #include <AnalyzerResults.h>
+#include <string.h>
 
 #define READ_WRITE_FLAG (0x1<<2)
 #define BYTE_TYPE_FLAG (0x3<<0)
@@ -31,6 +32,11 @@ protected: //functions
 protected: //vars
     std::shared_ptr<MKEAnalyzerSettings> mSettings;
     MKEAnalyzer* mAnalyzer;
+
+private:
+    void getCmdResponseString(Frame &frame, std::string &out);
+    void getStatusString(U8 data, std::string &out);
+    void getErrorString(U8 data, std::string &out);
 };
 
 #endif //MKE_ANALYZER_RESULTS

@@ -4,7 +4,6 @@
 #include "MKEAnalyzerSettings.h"
 #include <iostream>
 #include <sstream>
-#include <string.h>
 
 MKEAnalyzerResults::MKEAnalyzerResults(MKEAnalyzer* analyzer, std::shared_ptr<MKEAnalyzerSettings> settings)
     :   AnalyzerResults(),
@@ -17,14 +16,201 @@ MKEAnalyzerResults::~MKEAnalyzerResults()
 {
 }
 
+void MKEAnalyzerResults::getCmdResponseString(Frame &frame, std::string &out) {
+  U8 Cmd = (frame.mData1>>0)&0xFF;
+  std::stringstream ss;
+  U8 Status = 0;
+  switch(Cmd){
+    case SEEK:
+      out.append("SEEK");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case SPIN_UP:
+      out.append("SPIN UP");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case SPIN_DOWN:
+      out.append("SPIN DOWN");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case DIAG:
+      out.append("DIAG");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case STATUS:
+      out.append("STATUS");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case EJECT:
+      out.append("EJECT");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case INJECT:
+      out.append("INJECT");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case ABORT:
+      out.append("ABORT");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case SET_MODE:
+      out.append("SET MODE");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case RESET:
+      out.append("RESET");
+      break;
+    case FLUSH:
+      out.append("FLUSH");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case LOCK:
+      out.append("LOCK");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case PAUSE_RESUME:
+      out.append("PAUSE/RESUME");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case PLAY_MSF:
+      out.append("PLAY MSF");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case PLAY_TRACK:
+      out.append("PLAY TRACK");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case READ_DATA:
+      out.append("WTF ? READ DATA");
+      break;
+    case SUBCHANNEL_INFO:
+      out.append("SUBCHANNEL INFO");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case PATH_CHECK:
+      out.append("PATH CHECK");
+      Status = (frame.mData1>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case READ_ERROR:
+      out.append("READ ERROR");
+      Status = (frame.mData2>>8)&0xFF;
+      getStatusString(Status, out);
+      break;
+    case READ_ID:
+      out.append("READ ID");
+      Status = (frame.mData2>>(8*3))&0xFF;
+      getStatusString(Status, out);
+      break;
+    case MODE_SENSE:
+      out.append("MODE SENSE");
+      Status = (frame.mData1>>(8*6))&0xFF;
+      getStatusString(Status, out);
+      break;
+    case READ_CAPACITY:
+      out.append("READ CAPACITY");
+      Status = (frame.mData1>>(8*6))&0xFF;
+      getStatusString(Status, out);
+      break;
+    case READ_HEADER:
+      out.append("READ HEADER");
+      Status = (frame.mData1>>(8*5))&0xFF;
+      getStatusString(Status, out);
+      break;
+    case READ_SUB_Q:
+      out.append("READ SUBQ");
+      Status = (frame.mData2>>(8*3))&0xFF;
+      getStatusString(Status, out);
+      break;
+    case READ_UPC:
+      out.append("READ UPC");
+      Status = (frame.mData2>>(8*1))&0xFF;
+      getStatusString(Status, out);
+      break;
+    case READ_ISRC :
+      out.append("READ ISRC");
+      Status = (frame.mData2>>(8*3))&0xFF;
+      getStatusString(Status, out);
+      break;
+    case READ_DISC_CODE:
+      out.append("READ DISC CODE");
+      Status = (frame.mData2>>(8*3))&0xFF;
+      getStatusString(Status, out);
+      break;
+    case READ_DISC_INFO:
+      out.append("READ DISC INFO");
+      Status = (frame.mData1>>(8*7))&0xFF;
+      getStatusString(Status, out);
+      break;
+    case READ_TOC:
+      out.append("READ TOC");
+      Status = (frame.mData2>>(8*1))&0xFF;
+      getStatusString(Status, out);
+      break;
+    case READ_SESSION:
+      out.append("READ SESSION");
+      Status = (frame.mData1>>(8*7))&0xFF;
+      getStatusString(Status, out);
+      break;
+    case READ_DRIVER:
+      out.append("WTF? READ DRIVER");
+      break;
+    case DRIVE_RESET:
+      out.append("WTF? DRIVE RESET");
+      break;
+    default:
+      out.append("Unknown CMD");
+      ss << " 0x";
+      ss << std::hex << +Cmd;
+      out.append(ss.str());
+      break;
+  }
+}
+
+void MKEAnalyzerResults::getStatusString(U8 data, std::string &out){
+  std::stringstream ss;
+  ss << " Status: 0x";
+  ss << std::hex << +data;
+  out.append(ss.str());
+}
+
+void MKEAnalyzerResults::getErrorString(U8 data, std::string &out){
+  std::stringstream ss;
+  ss << " Error: 0x";
+  ss << std::hex << +data;
+  out.append(ss.str());
+}
+
 void MKEAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel& channel, DisplayBase display_base)    //unrefereced vars commented out to remove warnings.
 {
   // printf("Generate bubble text %lld\n", frame_index);
   //we only need to pay attention to 'channel' if we're making bubbles for more than one channel (as set by AddChannelBubblesWillAppearOn)
-    ClearResultStrings();
-    printf("bubble for Channel %d\n", channel.mChannelIndex);
-    AddResultString("Not supported");
-    // Frame frame = GetFrame(frame_index);
+  Frame frame = GetFrame(frame_index);
+  std::string out;
+  printf("Channel %d %d %d\n", channel.mChannelIndex, CDHRD, CDHWR);
+  ClearResultStrings();
+  if ((channel == mSettings->mChannel[CDHRD]) && !(frame.mFlags & READ_WRITE_FLAG)){
+    getCmdResponseString(frame, out);
+    AddResultString(out.c_str());
+  }
+  if ((channel == mSettings->mChannel[CDHWR]) && (frame.mFlags & READ_WRITE_FLAG)){
+    AddResultString("Write not supported");
+  }
     //
     // U8 frame_mode = frame.mFlags & BYTE_TYPE_FLAG;
     //
