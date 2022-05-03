@@ -35,6 +35,7 @@ protected: //vars
 
 private:
     void getCmdResponseString(Frame &frame, std::string &out);
+    void getCmdRequestString(Frame &frame, std::string &out);
     void getStatusString(U8 data, std::string &out);
     void getErrorString(U8 data, std::string &out);
 };

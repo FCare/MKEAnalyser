@@ -16,6 +16,116 @@ MKEAnalyzerResults::~MKEAnalyzerResults()
 {
 }
 
+void MKEAnalyzerResults::getCmdRequestString(Frame &frame, std::string &out) {
+  U8 Cmd = (frame.mData1>>0)&0xFF;
+  std::stringstream ss;
+  U8 Status = 0;
+  switch(Cmd){
+    case SEEK:
+      out.append("SEEK");
+      break;
+    case SPIN_UP:
+      out.append("SPIN UP");
+      break;
+    case SPIN_DOWN:
+      out.append("SPIN DOWN");
+      break;
+    case DIAG:
+      out.append("DIAG");
+      break;
+    case STATUS:
+      out.append("STATUS");
+      break;
+    case EJECT:
+      out.append("EJECT");
+      break;
+    case INJECT:
+      out.append("INJECT");
+      break;
+    case ABORT:
+      out.append("ABORT");
+      break;
+    case SET_MODE:
+      out.append("SET MODE");
+      break;
+    case RESET:
+      out.append("RESET");
+      break;
+    case FLUSH:
+      out.append("FLUSH");
+      break;
+    case LOCK:
+      out.append("LOCK");
+      break;
+    case PAUSE_RESUME:
+      out.append("PAUSE/RESUME");
+      break;
+    case PLAY_MSF:
+      out.append("PLAY MSF");
+      break;
+    case PLAY_TRACK:
+      out.append("PLAY TRACK");
+      break;
+    case READ_DATA:
+      out.append("WTF ? READ DATA");
+      break;
+    case SUBCHANNEL_INFO:
+      out.append("SUBCHANNEL INFO");
+      break;
+    case PATH_CHECK:
+      out.append("PATH CHECK");
+      break;
+    case READ_ERROR:
+      out.append("READ ERROR");
+      break;
+    case READ_ID:
+      out.append("READ ID");
+      break;
+    case MODE_SENSE:
+      out.append("MODE SENSE");
+      break;
+    case READ_CAPACITY:
+      out.append("READ CAPACITY");
+      break;
+    case READ_HEADER:
+      out.append("READ HEADER");
+      break;
+    case READ_SUB_Q:
+      out.append("READ SUBQ");
+      break;
+    case READ_UPC:
+      out.append("READ UPC");
+      break;
+    case READ_ISRC :
+      out.append("READ ISRC");
+      break;
+    case READ_DISC_CODE:
+      out.append("READ DISC CODE");
+      break;
+    case READ_DISC_INFO:
+      out.append("READ DISC INFO");
+      break;
+    case READ_TOC:
+      out.append("READ TOC");
+      break;
+    case READ_SESSION:
+      out.append("READ SESSION");
+      break;
+    case READ_DRIVER:
+      out.append("WTF? READ DRIVER");
+      break;
+    case DRIVE_RESET:
+      out.append("WTF? DRIVE RESET");
+      break;
+    default:
+      out.append("Unknown CMD");
+      ss << " 0x";
+      ss << std::hex << +Cmd;
+      out.append(ss.str());
+      break;
+  }
+}
+
 void MKEAnalyzerResults::getCmdResponseString(Frame &frame, std::string &out) {
   U8 Cmd = (frame.mData1>>0)&0xFF;
   std::stringstream ss;
@@ -198,18 +308,17 @@ void MKEAnalyzerResults::getErrorString(U8 data, std::string &out){
 
 void MKEAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel& channel, DisplayBase display_base)    //unrefereced vars commented out to remove warnings.
 {
-  // printf("Generate bubble text %lld\n", frame_index);
   //we only need to pay attention to 'channel' if we're making bubbles for more than one channel (as set by AddChannelBubblesWillAppearOn)
   Frame frame = GetFrame(frame_index);
   std::string out;
-  printf("Channel %d %d %d\n", channel.mChannelIndex, CDHRD, CDHWR);
   ClearResultStrings();
   if ((channel == mSettings->mChannel[CDHRD]) && !(frame.mFlags & READ_WRITE_FLAG)){
     getCmdResponseString(frame, out);
     AddResultString(out.c_str());
   }
   if ((channel == mSettings->mChannel[CDHWR]) && (frame.mFlags & READ_WRITE_FLAG)){
-    AddResultString("Write not supported");
+    getCmdRequestString(frame, out);
+    AddResultString(out.c_str());
   }
     //
     // U8 frame_mode = frame.mFlags & BYTE_TYPE_FLAG;
@@ -295,21 +404,16 @@ void MKEAnalyzerResults::GenerateExportFile(const char *file, DisplayBase displa
 void MKEAnalyzerResults::GenerateFrameTabularText(U64 frame_index, DisplayBase display_base)
 {
   //Text displayed in the right frame
-  // printf("GenerateFrameTabularText %lld\n", frame_index);
   ClearTabularText();
 
   Frame frame = GetFrame(frame_index);
 
-  // printf("%d\n", __LINE__);
-
   U8 frame_mode = frame.mFlags & BYTE_TYPE_FLAG;
 
-// printf("%d\n", __LINE__);
   bool is_write_frame = false;
   if ((frame.mFlags & READ_WRITE_FLAG) != 0) {
       is_write_frame = true;
   }
-  // printf("%d\n", __LINE__);
 
   if (is_write_frame) {
     AddTabularText("Write ");
@@ -317,36 +421,28 @@ void MKEAnalyzerResults::GenerateFrameTabularText(U64 frame_index, DisplayBase d
     AddTabularText("Read ");
   }
 
-// printf("%d\n", __LINE__);
   switch(frame_mode) {
     case CMD_MODE:
-    // printf("%d\n", __LINE__);
       AddTabularText("CMD ");
         // AddTabularText(val_str);
       for (int i = 0; i<8; i++) {
         U8 val = frame.mData1>>(8*i) & 0xFF;
-        // printf("%d %x\n", __LINE__, val);
       }
 //         char val_str[3];
-//         printf("%d\n", __LINE__);
 //         AnalyzerHelpers::GetNumberString(val, display_base, 8, val_str, 3);
-//         printf("%d %d\n", val, __LINE__);
 //         // AddTabularText(val_str);
 //       }
       break;
     case DATA_MODE:
-    // printf("%d\n", __LINE__);
       // AddTabularText("DATA ");
       break;
     case STATUS_MODE:
-    // printf("%d\n", __LINE__);
       AddTabularText("STATUS ");
       break;
     default:
       AddTabularText("UNKNOWN");
       break;
   }
-//   printf("%d\n", __LINE__);
   /*
 #define NIBBLE_TO_BINARY_PATTERN "%c%c%c%c"
 #define NIBBLE_TO_BINARY(nibble)  \

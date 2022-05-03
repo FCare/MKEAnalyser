@@ -34,7 +34,6 @@ void MKEAnalyzer::getDataBus(U8 *data) {
 
 void MKEAnalyzer::advanceAllToNextEdge(input_s channel) {
 	U64 sampleNb = mMKE[channel]->GetSampleOfNextEdge();
-	if (channel == CDHWR) printf("Sample %d\n", sampleNb);
 	for (int i = 0; i< CD_MAX; i++) {
 		if (i != channel)
 			mMKE[i]->AdvanceToAbsPosition(sampleNb - 1 );
@@ -80,7 +79,6 @@ void MKEAnalyzer::WorkerThread()
 					int nbSentPacket = 6;
 					int nbDataPacket = 0;
 					int nbStatusPacket = 1;
-					printf("CMD found 0x%x\n", data[0]);
 					switch(data[0]) {
 						case DIAG:
 						case STATUS:
