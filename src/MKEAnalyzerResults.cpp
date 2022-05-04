@@ -311,7 +311,7 @@ void MKEAnalyzerResults::getCmdBubble(Frame &frame) {
 void MKEAnalyzerResults::getCmdResponseTabular(Frame &frame) {
   U8 Cmd = (frame.mData1>>0)&0xFF;
   std::stringstream ss;
-  U8 Status = (frame.mData1>>8)&0xFF;;
+  U8 Status = (frame.mData1>>8)&0xFF;
   switch(Cmd){
     case SEEK:
       AddTabularText("RESP: SEEK");
@@ -381,6 +381,7 @@ void MKEAnalyzerResults::getCmdResponseTabular(Frame &frame) {
       break;
     case PATH_CHECK:
       AddTabularText("RESP: PATH CHECK");
+      Status = (frame.mData1>>(8*3))&0xFF;
       getStatusString(Status);
       break;
     case READ_ERROR:

@@ -78,12 +78,17 @@ void MKEAnalyzer::WorkerThread()
 
 					int nbSentPacket = 6;
 					int nbDataPacket = 0;
-					int nbStatusPacket = 1;
+					int nbStatusPacket = 2;
 					switch(data[0]) {
+						case FLUSH:
+						case RESET:
+							nbStatusPacket = 1;
 						case DIAG:
 						case STATUS:
-						case FLUSH:
 							nbSentPacket = 0;
+							break;
+						case PATH_CHECK:
+							nbStatusPacket = 4;
 							break;
 						case READ_HEADER:
 							nbStatusPacket = 6;
