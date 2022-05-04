@@ -178,17 +178,6 @@ void MKEAnalyzerResults::getCmdRequestTabular(Frame &frame) {
       break;
     case READ_DISC_INFO:
       AddTabularText("CMD: READ DISC INFO");
-      data[1] = (frame.mData1>>8)&0xFF;
-      data[2] = (frame.mData1>>16)&0xFF;
-      data[3] = (frame.mData1>>24)&0xFF;
-      data[4] = (frame.mData1>>32)&0xFF;
-      data[5] = (frame.mData1>>40)&0xFF;
-      data[6] = (frame.mData1>>48)&0xFF;
-      ss << ",format:" << (+data[1]);
-      ss << ",first track:" << (+data[2]);
-      ss << ",last track:" << (+data[3]);
-      ss << ",MSF:" << (+data[4]) << ":" << (+data[5]) << ":" << (+data[6]);
-      AddTabularText(ss.str().c_str());
       break;
     case READ_TOC:
       AddTabularText("CMD: READ TOC");
@@ -321,6 +310,7 @@ void MKEAnalyzerResults::getCmdBubble(Frame &frame) {
 
 void MKEAnalyzerResults::getCmdResponseTabular(Frame &frame) {
   U8 Cmd = (frame.mData1>>0)&0xFF;
+  U8 data[6];
   std::stringstream ss;
   U8 Status = (frame.mData1>>8)&0xFF;
   switch(Cmd){
@@ -444,6 +434,17 @@ void MKEAnalyzerResults::getCmdResponseTabular(Frame &frame) {
     case READ_DISC_INFO:
       AddTabularText("RESP: READ DISC INFO");
       Status = (frame.mData1>>(8*7))&0xFF;
+      data[1] = (frame.mData1>>(8*1))&0xFF;
+      data[2] = (frame.mData1>>(8*2))&0xFF;
+      data[3] = (frame.mData1>>(8*3))&0xFF;
+      data[4] = (frame.mData1>>(8*4))&0xFF;
+      data[5] = (frame.mData1>>(8*5))&0xFF;
+      data[6] = (frame.mData1>>(8*6))&0xFF;
+      ss << ",format:" << (+data[1]);
+      ss << ",first track:" << (+data[2]);
+      ss << ",last track:" << (+data[3]);
+      ss << ",MSF:" << (+data[4]) << ":" << (+data[5]) << ":" << (+data[6]);
+      AddTabularText(ss.str().c_str());
       getStatusString(Status);
       break;
     case READ_TOC:
