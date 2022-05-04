@@ -461,6 +461,7 @@ void MKEAnalyzerResults::getCmdResponseTabular(Frame &frame) {
 void MKEAnalyzerResults::getStatusString(U8 data){
   std::stringstream ss;
   AddTabularText(" Status: ");
+  if (data == 0x0) ss << "No status!";
   if (data & STATUS_DOOR_CLOSED) ss << "Door closed,";
   if (data & STATUS_DISK_IN) ss << "Disk in,";
   if (data & STATUS_SPINNING) ss << "Spinning,";
@@ -630,131 +631,6 @@ void MKEAnalyzerResults::GenerateFrameTabularText(U64 frame_index, DisplayBase d
   } else {
     getCmdResponseTabular(frame);
   }
-
-  /*
-#define NIBBLE_TO_BINARY_PATTERN "%c%c%c%c"
-#define NIBBLE_TO_BINARY(nibble)  \
-	  (nibble & 0x08 ? '1' : '0'), \
-	  (nibble & 0x04 ? '1' : '0'), \
-	  (nibble & 0x02 ? '1' : '0'), \
-	  (nibble & 0x01 ? '1' : '0')
-
-
-	ClearTabularText();
-	Frame frame = GetFrame(frame_index);
-	Frame prevFrame = GetFrame(frame_index - 1);
-	MKEAnalyzer::MKE_STATE prevState = (MKEAnalyzer::MKE_STATE)prevFrame.mData2;
-	Frame nextFrame[8]; //Get the next bunch of frames. Used to merged Address and Data nibbles.
-	for (U8 i = 0; i < 8; i++) {
-		nextFrame[i]= GetFrame(frame_index + i);
-	}
-
-
-	char state_str[128];
-	char tab_str[128];
-
-	MKEAnalyzer::MKE_STATE state = (MKEAnalyzer::MKE_STATE)frame.mData2;
-
-	switch (state) {
-	case MKEAnalyzer::MKE_STATE::START:
-		memcpy(state_str, "START", 6);
-		break;
-
-	case MKEAnalyzer::MKE_STATE::CYCTYPE:
-		switch (frame.mData1) {
-		case 0b0000:
-			memcpy(state_str, "IO READ", 8);
-			break;
-		case 0b0010:
-			memcpy(state_str, "IO WRITE", 9);
-			break;
-		case 0b0100:
-			memcpy(state_str, "MEM READ", 9);
-			break;
-		case 0b0110:
-			memcpy(state_str, "MEM WRITE", 10);
-			break;
-		}
-
-		break;
-
-	case MKEAnalyzer::MKE_STATE::IO_READ_ADD:
-	case MKEAnalyzer::MKE_STATE::IO_WRITE_ADD:
-		if (prevState != MKEAnalyzer::MKE_STATE::IO_READ_ADD &&
-			prevState != MKEAnalyzer::MKE_STATE::IO_WRITE_ADD) {
-			//IO Read/Write address are 4 nibbles long
-			//Addresses are Most Significant Nibble First as per MKE spec
-			uint32_t address = nextFrame[0].mData1 << 12 |
-				     nextFrame[1].mData1 << 8 |
-				     nextFrame[2].mData1 << 4 |
-				     nextFrame[3].mData1 << 0;
-			snprintf(tab_str, 100, "ADDRESS 0x%04x", address);
-			AddTabularText(tab_str);
-		}
-		else {
-			ClearTabularText();
-		}
-		return;
-		break;
-	case MKEAnalyzer::MKE_STATE::MEM_READ_ADD:
-	case MKEAnalyzer::MKE_STATE::MEM_WRITE_ADD:
-		if (prevState != MKEAnalyzer::MKE_STATE::MEM_READ_ADD &&
-			prevState != MKEAnalyzer::MKE_STATE::MEM_WRITE_ADD) {
-			//Mem Read/Write address are 8 nibbles long
-			//Addresses are Most Significant Nibble First as per MKE spec
-			uint32_t address = nextFrame[0].mData1 << 28 |
-                     nextFrame[1].mData1 << 24 |
-                     nextFrame[2].mData1 << 20 |
-                     nextFrame[3].mData1 << 16 |
-                     nextFrame[4].mData1 << 12 |
-                     nextFrame[5].mData1 << 8 |
-                     nextFrame[6].mData1 << 4 |
-                     nextFrame[7].mData1 << 0;
-
-			snprintf(tab_str, 100, "ADDRESS 0x%08x", address);
-			AddTabularText(tab_str);
-		}
-		return;
-		break;
-	case MKEAnalyzer::MKE_STATE::IO_READ_DATA:
-	case MKEAnalyzer::MKE_STATE::IO_WRITE_DATA:
-	case MKEAnalyzer::MKE_STATE::MEM_READ_DATA:
-	case MKEAnalyzer::MKE_STATE::MEM_WRITE_DATA:
-		memcpy(state_str, "DATA", 5);
-		break;
-
-	case MKEAnalyzer::MKE_STATE::IO_READ_TAR:
-	case MKEAnalyzer::MKE_STATE::IO_WRITE_TAR:
-	case MKEAnalyzer::MKE_STATE::MEM_READ_TAR:
-	case MKEAnalyzer::MKE_STATE::MEM_WRITE_TAR:
-	case MKEAnalyzer::MKE_STATE::TAR:
-		memcpy(state_str, "TAR", 4);
-		break;
-
-	case MKEAnalyzer::MKE_STATE::IO_READ_SYNC:
-	case MKEAnalyzer::MKE_STATE::IO_WRITE_SYNC:
-	case MKEAnalyzer::MKE_STATE::MEM_READ_SYNC:
-	case MKEAnalyzer::MKE_STATE::MEM_WRITE_SYNC:
-		memcpy(state_str, "SYNC", 5);
-		break;
-
-	case MKEAnalyzer::MKE_STATE::COMPLETE:
-		memcpy(state_str, "COMPLETE", 9);
-		break;
-
-	default:
-		memcpy(state_str, "UNKNOWN", 8);
-		break;
-	}
-
-	if (frame.mFlags != 0) {
-		snprintf(tab_str, 30, "ERROR");
-	}
-	else {
-		snprintf(tab_str, 30, "%s (0b%c%c%c%c)", state_str, NIBBLE_TO_BINARY(frame.mData1));
-	}
-	AddTabularText(tab_str);
-  */
 }
 
 void MKEAnalyzerResults::GeneratePacketTabularText(U64 /*packet_id*/, DisplayBase /*display_base*/)    //unrefereced vars commented out to remove warnings.
