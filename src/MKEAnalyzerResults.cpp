@@ -310,7 +310,7 @@ void MKEAnalyzerResults::getCmdBubble(Frame &frame) {
 
 void MKEAnalyzerResults::getCmdResponseTabular(Frame &frame) {
   U8 Cmd = (frame.mData1>>0)&0xFF;
-  U8 data[6];
+  U8 data[8];
   std::stringstream ss;
   U8 Status = (frame.mData1>>8)&0xFF;
   switch(Cmd){
@@ -452,12 +452,16 @@ void MKEAnalyzerResults::getCmdResponseTabular(Frame &frame) {
       Status = (frame.mData2>>(8*1))&0xFF;
       data [1] = (frame.mData1>>(8*1))&0xFF;
       data [2] = (frame.mData1>>(8*2))&0xFF;
-      data [3] = (frame.mData1>>(8*4))&0xFF;
-      data [4] = (frame.mData1>>(8*5))&0xFF;
-      data [5] = (frame.mData1>>(8*6))&0xFF;
-      ss << ",CTRL: 0x" << std::hex << (+data[1]);
-      ss << ",id:" << (+data[2]);
-      ss << ",MSF:" << std::dec << (+data[3]) << ":" << (+data[4]) << ":" << (+data[5]);
+      data [3] = (frame.mData1>>(8*3))&0xFF;
+      data [4] = (frame.mData1>>(8*4))&0xFF;
+      data [5] = (frame.mData1>>(8*5))&0xFF;
+      data [6] = (frame.mData1>>(8*6))&0xFF;
+      data [7] = (frame.mData1>>(8*7))&0xFF;
+      ss << ",NixByte: 0x" << std::hex << (+data[1]);
+      ss << ",ADDR: 0x" << std::hex << (+data[2]);
+      ss << ",id:" << (+data[3]);
+      ss << ",Format:" << (+data[4]);
+      ss << ",MSF:" << std::dec << (+data[5]) << ":" << (+data[6]) << ":" << (+data[7]);
       AddTabularText(ss.str().c_str());
       getStatusString(Status);
       break;
