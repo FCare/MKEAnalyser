@@ -450,6 +450,15 @@ void MKEAnalyzerResults::getCmdResponseTabular(Frame &frame) {
     case READ_TOC:
       AddTabularText("RESP: READ TOC");
       Status = (frame.mData2>>(8*1))&0xFF;
+      data [1] = (frame.mData1>>(8*1))&0xFF;
+      data [2] = (frame.mData1>>(8*2))&0xFF;
+      data [3] = (frame.mData1>>(8*4))&0xFF;
+      data [4] = (frame.mData1>>(8*5))&0xFF;
+      data [5] = (frame.mData1>>(8*6))&0xFF;
+      ss << ",CTRL: 0x" << std::hex << (+data[1]);
+      ss << ",id:" << (+data[2]);
+      ss << ",MSF:" << std::dec << (+data[3]) << ":" << (+data[4]) << ":" << (+data[5]);
+      AddTabularText(ss.str().c_str());
       getStatusString(Status);
       break;
     case READ_SESSION:
