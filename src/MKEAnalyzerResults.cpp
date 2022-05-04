@@ -178,6 +178,17 @@ void MKEAnalyzerResults::getCmdRequestTabular(Frame &frame) {
       break;
     case READ_DISC_INFO:
       AddTabularText("CMD: READ DISC INFO");
+      data[1] = (frame.mData1>>8)&0xFF;
+      data[2] = (frame.mData1>>16)&0xFF;
+      data[3] = (frame.mData1>>24)&0xFF;
+      data[4] = (frame.mData1>>32)&0xFF;
+      data[5] = (frame.mData1>>40)&0xFF;
+      data[6] = (frame.mData1>>48)&0xFF;
+      ss << ",format:" << (+data[1]);
+      ss << ",first track:" << (+data[2]);
+      ss << ",last track:" << (+data[3]);
+      ss << ",MSF:" << (+data[4]) << ":" << (+data[5]) << ":" << (+data[6]);
+      AddTabularText(ss.str().c_str());
       break;
     case READ_TOC:
       AddTabularText("CMD: READ TOC");
