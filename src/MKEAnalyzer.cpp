@@ -103,6 +103,7 @@ void MKEAnalyzer::WorkerThread()
 							break;
 						case READ_ERROR:
 						case READ_UPC:
+						case READ_TOC:
 							nbStatusPacket = 10;
 							break;
 						case READ_ID:
