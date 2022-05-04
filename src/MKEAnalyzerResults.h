@@ -34,10 +34,11 @@ protected: //vars
     MKEAnalyzer* mAnalyzer;
 
 private:
-    void getCmdResponseString(Frame &frame, std::string &out);
-    void getCmdRequestString(Frame &frame, std::string &out);
-    void getStatusString(U8 data, std::string &out);
-    void getErrorString(U8 data, std::string &out);
+    void getCmdResponseTabular(Frame &frame);
+    void getCmdRequestTabular(Frame &frame);
+    void getCmdBubble(Frame &frame);
+    void getStatusString(U8 data);
+    void getErrorString(U8 data);
 };
 
 #endif //MKE_ANALYZER_RESULTS
