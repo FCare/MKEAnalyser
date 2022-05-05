@@ -258,7 +258,7 @@ void MKEAnalyzerResults::getCmdBubble(Frame &frame) {
       AddResultString("PLAY TRACK");
       break;
     case READ_DATA:
-      AddResultString("WTF ? READ DATA");
+      AddResultString("READ DATA");
       break;
     case SUBCHANNEL_INFO:
       AddResultString("SUBCHANNEL INFO");
