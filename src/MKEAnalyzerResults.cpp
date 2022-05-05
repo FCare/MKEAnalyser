@@ -200,6 +200,14 @@ void MKEAnalyzerResults::getCmdRequestTabular(Frame &frame) {
   }
 }
 
+void MKEAnalyzerResults::getDataBubble(Frame &frame) {
+  std::stringstream ss;
+  U8 Xor = (frame.mData1>>0)&0xFF;
+  ss << "READ DATA 0x";
+  ss << std::hex << +Xor;
+  AddResultString(ss.str().c_str());
+}
+
 void MKEAnalyzerResults::getCmdBubble(Frame &frame) {
   std::stringstream ss;
   U8 Cmd = (frame.mData1>>0)&0xFF;
@@ -308,6 +316,16 @@ void MKEAnalyzerResults::getCmdBubble(Frame &frame) {
   }
 }
 
+void MKEAnalyzerResults::getDataResponseTabular(Frame &frame) {
+  std::stringstream ss;
+  U8 Xor = (frame.mData1>>0)&0xFF;
+  U8 Status = (frame.mData2>>0)&0xFF;
+  ss << "READ DATA 0x";
+  ss << std::hex << +Xor;
+  AddTabularText(ss.str().c_str());
+  getStatusString(Status);
+}
+
 void MKEAnalyzerResults::getCmdResponseTabular(Frame &frame) {
   U8 Cmd = (frame.mData1>>0)&0xFF;
   U8 data[8];
@@ -374,7 +392,7 @@ void MKEAnalyzerResults::getCmdResponseTabular(Frame &frame) {
       getStatusString(Status);
       break;
     case READ_DATA:
-      AddTabularText("RESP: WTF ? READ DATA");
+      AddTabularText("RESP: WTF ? Quoi ? READ DATA");
       break;
     case SUBCHANNEL_INFO:
       AddTabularText("RESP: SUBCHANNEL INFO");
@@ -587,7 +605,10 @@ void MKEAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel& channel, D
   Frame frame = GetFrame(frame_index);
   ClearResultStrings();
   if ((channel == mSettings->mChannel[CDHRD]) && !(frame.mFlags & READ_WRITE_FLAG)){
-    getCmdBubble(frame);
+    if (frame.mFlags & CMD_MODE)
+      getCmdBubble(frame);
+    else
+      getDataBubble(frame);
   }
   if ((channel == mSettings->mChannel[CDHWR]) && (frame.mFlags & READ_WRITE_FLAG)){
     getCmdBubble(frame);
@@ -655,7 +676,10 @@ void MKEAnalyzerResults::GenerateFrameTabularText(U64 frame_index, DisplayBase d
   if (is_write_frame){
     getCmdRequestTabular(frame);
   } else {
-    getCmdResponseTabular(frame);
+    if (frame.mFlags & CMD_MODE)
+      getCmdResponseTabular(frame);
+    else
+      getDataResponseTabular(frame);
   }
 }
 

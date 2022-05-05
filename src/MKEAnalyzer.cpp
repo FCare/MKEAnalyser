@@ -26,6 +26,7 @@ void MKEAnalyzer::SetupResults()
 }
 
 void MKEAnalyzer::getDataBus(U8 *data) {
+	*data = 0x0;
 	for (U32 i = CDD0; i <= CDD7; i++) {
 		if (mMKE[i]->GetBitState() == BIT_HIGH)
 			*data |= 1 << (i-CDD0);
@@ -73,8 +74,7 @@ void MKEAnalyzer::WorkerThread()
 					advanceAllToNextEdge(CDHWR);
 					getDataBus(&data[0]);
 
-					if (mMKE[CDCMD]->GetBitState() == BIT_LOW) mFlags |= CMD_MODE;
-					else mFlags |= DATA_MODE;
+					mFlags |= CMD_MODE;
 
 					int nbSentPacket = 6;
 					int nbDataPacket = 0;
@@ -121,13 +121,6 @@ void MKEAnalyzer::WorkerThread()
 						getDataBus(&data[i]);
 					}
 
-					switch(data[0]) {
-						case READ_DATA:
-							nbDataPacket = data[5];
-						default:
-						break;
-					}
-
 	        // if (mMKE[CDCMD]->GetBitState() == BIT_LOW)
 	        mFlags |= READ_WRITE_FLAG;
 
@@ -145,6 +138,7 @@ void MKEAnalyzer::WorkerThread()
 					//CMD is sent
 
 					mResults->AddFrame(frame);
+				  mResults->CommitResults();
 
 					//Get answers
 					memset(data, 0, 16);
@@ -154,27 +148,47 @@ void MKEAnalyzer::WorkerThread()
 					}
 					frame.mStartingSampleInclusive = mMKE[CDHRD]->GetSampleNumber();
 
-					for (int i = 0; i < nbStatusPacket; i++) {
-						if (mMKE[CDHRD]->GetBitState() == BIT_HIGH) advanceAllToNextEdge(CDHRD);
+					if ((mMKE[CDSTEN]->GetBitState() == BIT_LOW) && (mMKE[CDDTEN]->GetBitState() == BIT_HIGH)) {
+						for (int i = 0; i < nbStatusPacket; i++) {
+							if (mMKE[CDHRD]->GetBitState() == BIT_HIGH) advanceAllToNextEdge(CDHRD);
+							advanceAllToNextEdge(CDHRD);
+							getDataBus(&data[i]);
+
+							mFlags |= CMD_MODE;
+
+							frame.mEndingSampleInclusive = mMKE[CDHRD]->GetSampleNumber();
+						}
+						memcpy(&frame.mData1, &data[0], 8);
+						memcpy(&frame.mData2, &data[8], 8);
+						frame.mFlags = mFlags;
+						mResults->AddFrame(frame);
+						mResults->CommitResults();
+					}
+
+					if (mMKE[CDDTEN]->GetBitState() == BIT_LOW) {
+						//Read DATA case. Make only one packet with XOR of all values
+						frame.mStartingSampleInclusive = mMKE[CDHRD]->GetSampleNumber();
+						frame.mData1 = 0;
+						while(mMKE[CDDTEN]->GetBitState() == BIT_LOW) {
+							if (mMKE[CDHRD]->GetBitState() == BIT_HIGH) advanceAllToNextEdge(CDHRD);
+							advanceAllToNextEdge(CDHRD);
+							getDataBus(&data[0]);
+							frame.mData1 ^= data[0];
+						}
+						//Now get the STATUS
+						advanceAllToNextEdge(CDSTEN);
 						advanceAllToNextEdge(CDHRD);
-						getDataBus(&data[i]);
-
-						mFlags |= STATUS_MODE;
-
-						if (mMKE[CDCMD]->GetBitState() == BIT_LOW) mFlags |= CMD_MODE;
-						else mFlags |= DATA_MODE;
+						getDataBus(&data[0]);
+						frame.mData2 = data[0];
 
 						frame.mEndingSampleInclusive = mMKE[CDHRD]->GetSampleNumber();
+						frame.mFlags = mFlags;
+						mResults->AddFrame(frame);
+						mResults->CommitResults();
 					}
 
 					advanceAllToNextEdge(CDHWR);
-					memcpy(&frame.mData1, &data[0], 8);
-					memcpy(&frame.mData2, &data[8], 8);
-					frame.mFlags = mFlags;
-					mResults->AddFrame(frame);
 					//Go to next command
-
-	        mResults->CommitResults();
 
 	        ReportProgress(frame.mEndingSampleInclusive);
 	        CheckIfThreadShouldExit();

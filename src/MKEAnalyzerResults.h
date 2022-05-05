@@ -7,9 +7,7 @@
 #define READ_WRITE_FLAG (0x1<<2)
 #define BYTE_TYPE_FLAG (0x3<<0)
 
-#define CMD_MODE (0x0 << 0)
-#define DATA_MODE (0x1 << 0)
-#define STATUS_MODE (0x2 << 0)
+#define CMD_MODE (0x1 << 0)
 
 class MKEAnalyzer;
 class MKEAnalyzerSettings;
@@ -35,8 +33,10 @@ protected: //vars
 
 private:
     void getCmdResponseTabular(Frame &frame);
+    void getDataResponseTabular(Frame &frame);
     void getCmdRequestTabular(Frame &frame);
     void getCmdBubble(Frame &frame);
+    void getDataBubble(Frame &frame);
     void getStatusString(U8 data);
     void getErrorString(U8 data);
 };
