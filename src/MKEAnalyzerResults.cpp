@@ -134,12 +134,14 @@ void MKEAnalyzerResults::getCmdRequestTabular(Frame &frame) {
       data[2] = (frame.mData1>>16)&0xFF;
       data[3] = (frame.mData1>>24)&0xFF;
       data[4] = (frame.mData1>>32)&0xFF;
+      data[5] = (frame.mData1>>40)&0xFF;
+      data[6] = (frame.mData1>>48)&0xFF;
       if (data[4] == 0x00) {
-        ss << ",MSF:" << (+data[1]) << ":" << (+data[2]) << ":" << (+data[3]);
+        ss << ",MSF:" << (+data[1]) << ":" << (+data[2]) << ":" << (+data[3]) << ",blocks:" << +(data[5]<<8|data[6]);
         AddTabularText(ss.str().c_str());
       }
       if (data[4] == 0x01) {
-        ss << ",LBA:" << (+data[1]) << ":" << (+data[2]) << ":" << (+data[3]);
+        ss << ",LBA:" << (+data[1]) << ":" << (+data[2]) << ":" << (+data[3]) << ",blocks:" << +(data[5]<<8|data[6]);
         AddTabularText(ss.str().c_str());
       }
       break;
@@ -392,7 +394,7 @@ void MKEAnalyzerResults::getCmdResponseTabular(Frame &frame) {
       getStatusString(Status);
       break;
     case READ_DATA:
-      AddTabularText("RESP: WTF ? Quoi ? READ DATA");
+      AddTabularText("RESP: WTF ? READ DATA");
       break;
     case SUBCHANNEL_INFO:
       AddTabularText("RESP: SUBCHANNEL INFO");

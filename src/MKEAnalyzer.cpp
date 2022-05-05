@@ -171,12 +171,15 @@ void MKEAnalyzer::WorkerThread()
 						frame.mData1 = 0;
 						while(mMKE[CDDTEN]->GetBitState() == BIT_LOW) {
 							if (mMKE[CDHRD]->GetBitState() == BIT_HIGH) advanceAllToNextEdge(CDHRD);
+							if (mMKE[CDDTEN]->GetBitState() == BIT_HIGH) break;
 							advanceAllToNextEdge(CDHRD);
 							getDataBus(&data[0]);
 							frame.mData1 ^= data[0];
 						}
 						//Now get the STATUS
-						advanceAllToNextEdge(CDSTEN);
+						if (mMKE[CDHRD]->GetBitState() == BIT_HIGH) advanceAllToNextEdge(CDHRD);
+						advanceAllToNextEdge(CDHRD);
+						advanceAllToNextEdge(CDHRD);
 						advanceAllToNextEdge(CDHRD);
 						getDataBus(&data[0]);
 						frame.mData2 = data[0];
