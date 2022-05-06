@@ -208,6 +208,16 @@ void MKEAnalyzer::WorkerThread()
 						bool dataStarted = false;
 						while (!dataStarted || (mMKE[CDSTEN]->GetBitState() == BIT_LOW) || !CDavailable()) {
 						// while(((mMKE[CDDTEN]->GetBitState() == BIT_LOW) || (mMKE[CDMDCHG]->GetBitState() == BIT_HIGH)) && (mMKE[CDEN]->GetBitState() == BIT_LOW)) {
+							if (mMKE[CDSTEN]->GetBitState() == BIT_LOW) {
+								U64 nextCDSTEN = mMKE[CDSTEN]->GetSampleOfNextEdge();
+								U64 nextCDHRD =  mMKE[CDHRD]->GetSampleOfNextEdge();
+								U64 nextValid =  mMKE[CDMDCHG]->GetSampleOfNextEdge();
+								if ((nextCDSTEN < nextCDHRD) && (nextValid > nextCDSTEN)) {
+									advanceAllToNextEdge(CDSTEN,BIT_HIGH);
+									advanceAllTo(CDSTEN);
+									break;
+								}
+							}
 							if ((mMKE[CDHRD]->GetBitState() == BIT_HIGH) && (mMKE[CDEN]->GetBitState() == BIT_LOW)) advanceAllToEarlierNextEdge(CDHRD, CDEN, BIT_LOW, BIT_HIGH); //LOW
 							if(mMKE[CDHRD]->GetBitState() == BIT_HIGH) {
 								//Interrupted due to CDEN HIGH
