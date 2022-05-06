@@ -78,11 +78,25 @@ void MKEAnalyzer::advanceAllTo(input_s channel) {
 	}
 }
 
-bool MKEAnalyzer::isLongHigh(input_s channel) {
+bool MKEAnalyzer::isLongHigh(input_s channel, input_s channelTest) {
 	if (mMKE[channel]->GetBitState() == BIT_HIGH) {
 		U64 currentSample = mMKE[channel]->GetSampleNumber();
 		U64 nextEdge = mMKE[channel]->GetSampleOfNextEdge();
-		if ((nextEdge - currentSample)>100) return true;
+		if ((nextEdge - currentSample)>1000) return true;
+	} else {
+		U64 nextHigh = mMKE[channel]->GetSampleOfNextEdge();
+		U64 nextChannelTest = mMKE[channelTest]->GetSampleOfNextEdge();
+		if (nextChannelTest < nextHigh) return false;
+		else {
+			U64 sampleNb = mMKE[channel]->GetSampleOfNextEdge();
+			for (int i = 0; i< CD_MAX; i++) {
+					mMKE[i]->AdvanceToAbsPosition(sampleNb);
+			}
+			if (!CDavailable()) return false;
+			U64 currentSample = mMKE[channel]->GetSampleNumber();
+			U64 nextEdge = mMKE[channel]->GetSampleOfNextEdge();
+			if ((nextEdge - currentSample)>1000) return true;
+		}
 	}
 	return false;
 }
@@ -215,7 +229,7 @@ void MKEAnalyzer::WorkerThread()
 						frame.mStartingSampleInclusive = mMKE[CDDTEN]->GetSampleNumber();
 						frame.mData1 = 0;
 						bool dataStarted = false;
-						while (!dataStarted || !isLongHigh(CDSTEN) || !CDavailable()) {
+						while (!dataStarted || !isLongHigh(CDSTEN, CDHRD) || !CDavailable()) {
 							if ((mMKE[CDHRD]->GetBitState() == BIT_HIGH) && (mMKE[CDEN]->GetBitState() == BIT_LOW)) advanceAllToEarlierNextEdge(CDHRD, CDEN, BIT_LOW, BIT_HIGH); //LOW
 							if(mMKE[CDHRD]->GetBitState() == BIT_HIGH) {
 								//Interrupted due to CDEN HIGH
