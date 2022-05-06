@@ -8,6 +8,7 @@
 #define BYTE_TYPE_FLAG (0x3<<0)
 
 #define CMD_MODE (0x1 << 0)
+#define ABORTED_DATA (0x1 << 1)
 
 class MKEAnalyzer;
 class MKEAnalyzerSettings;

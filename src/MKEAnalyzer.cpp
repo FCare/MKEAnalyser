@@ -33,26 +33,47 @@ void MKEAnalyzer::getDataBus(U8 *data) {
 	}
 }
 
+bool MKEAnalyzer::CDavailable(void) {
+	return (mMKE[CDMDCHG]->GetBitState() == BIT_LOW);
+}
 
-void MKEAnalyzer::advanceAllToEarlierNextEdge(input_s channelA, input_s channelB) {
-	U64 sampleNbA = mMKE[channelA]->GetSampleOfNextEdge();
-	U64 sampleNbB = mMKE[channelB]->GetSampleOfNextEdge();
-	input_s earlierChannel = (sampleNbA < sampleNbB)?channelA:channelB;
-	U64 sampleNb = (sampleNbA < sampleNbB)?sampleNbA:sampleNbB;
-	for (int i = 0; i< CD_MAX; i++) {
-		if (i != earlierChannel)
+void MKEAnalyzer::advanceAllToEarlierNextEdge(input_s channelA, input_s channelB, U8 levelA, U8 levelB) {
+	bool isAdvancing = true;
+	while (isAdvancing) {
+		U64 sampleNbA = mMKE[channelA]->GetSampleOfNextEdge();
+		U64 sampleNbB = mMKE[channelB]->GetSampleOfNextEdge();
+		U8 level = (sampleNbA < sampleNbB)?levelA:levelB;
+		input_s earlierChannel = (sampleNbA < sampleNbB)?channelA:channelB;
+
+		U64 sampleNb = (sampleNbA < sampleNbB)?sampleNbA:sampleNbB;
+		for (int i = 0; i< CD_MAX; i++) {
+			if ((i != earlierChannel) && (i != CDMDCHG))
 			mMKE[i]->AdvanceToAbsPosition(sampleNb - 1 );
-		else
+			else
 			mMKE[i]->AdvanceToAbsPosition(sampleNb);
+		}
+		isAdvancing = !CDavailable() || (mMKE[earlierChannel]->GetBitState() != level);
 	}
 }
 
-void MKEAnalyzer::advanceAllToNextEdge(input_s channel) {
-	U64 sampleNb = mMKE[channel]->GetSampleOfNextEdge();
+void MKEAnalyzer::advanceAllToNextEdge(input_s channel, U8 level) {
+	bool isAdvancing = true;
+	while (isAdvancing) {
+		U64 sampleNb = mMKE[channel]->GetSampleOfNextEdge();
+		for (int i = 0; i< CD_MAX; i++) {
+			if ((i != channel)&& (i != CDMDCHG))
+				mMKE[i]->AdvanceToAbsPosition(sampleNb - 1 );
+			else
+				mMKE[i]->AdvanceToAbsPosition(sampleNb);
+		}
+		isAdvancing = !CDavailable();
+	}
+}
+
+void MKEAnalyzer::advanceAllTo(input_s channel) {
+	U64 sampleNb = mMKE[channel]->GetSampleNumber();
 	for (int i = 0; i< CD_MAX; i++) {
 		if (i != channel)
-			mMKE[i]->AdvanceToAbsPosition(sampleNb - 1 );
-		else
 			mMKE[i]->AdvanceToAbsPosition(sampleNb);
 	}
 }
@@ -77,7 +98,7 @@ void MKEAnalyzer::WorkerThread()
 									(mMKE[CDRST]->GetBitState() == BIT_LOW)    ||
 									(mMKE[CDEN]->GetBitState() == BIT_HIGH)
 								) {
-				      advanceAllToNextEdge(CDHWR);
+				      advanceAllToNextEdge(CDHWR, BIT_LOW);
 				  }
 
 	        //we're now at the beginning of the start bit.  We can start collecting the data.
@@ -85,7 +106,7 @@ void MKEAnalyzer::WorkerThread()
 
 	        U8 data[16] = {0};
 
-					advanceAllToNextEdge(CDHWR);
+					advanceAllToNextEdge(CDHWR, BIT_HIGH);
 					getDataBus(&data[0]);
 
 					mFlags |= CMD_MODE;
@@ -130,8 +151,8 @@ void MKEAnalyzer::WorkerThread()
 						break;
 					}
 					for (int i = 1; i < (nbSentPacket + 1); i++) {
-						advanceAllToNextEdge(CDHWR);
-						advanceAllToNextEdge(CDHWR);
+						advanceAllToNextEdge(CDHWR, BIT_LOW);
+						advanceAllToNextEdge(CDHWR, BIT_HIGH);
 						getDataBus(&data[i]);
 					}
 
@@ -158,14 +179,14 @@ void MKEAnalyzer::WorkerThread()
 					memset(data, 0, 16);
 					mFlags = 0;
 					while ((mMKE[CDHRD]->GetBitState() == BIT_HIGH) && (mMKE[CDDTEN]->GetBitState() == BIT_HIGH)){
-						advanceAllToEarlierNextEdge(CDHRD, CDDTEN);
+						advanceAllToEarlierNextEdge(CDHRD, CDDTEN, BIT_LOW, BIT_LOW);
 					}
 					frame.mStartingSampleInclusive = mMKE[CDHRD]->GetSampleNumber();
 
 					if ((mMKE[CDSTEN]->GetBitState() == BIT_LOW) && (mMKE[CDDTEN]->GetBitState() == BIT_HIGH)) {
 						for (int i = 0; i < nbStatusPacket; i++) {
-							if (mMKE[CDHRD]->GetBitState() == BIT_HIGH) advanceAllToNextEdge(CDHRD);
-							advanceAllToNextEdge(CDHRD);
+							if (mMKE[CDHRD]->GetBitState() == BIT_HIGH) advanceAllToNextEdge(CDHRD, BIT_LOW);
+							advanceAllToNextEdge(CDHRD, BIT_HIGH);
 							getDataBus(&data[i]);
 
 							mFlags |= CMD_MODE;
@@ -177,32 +198,33 @@ void MKEAnalyzer::WorkerThread()
 						frame.mFlags = mFlags;
 						mResults->AddFrame(frame);
 						mResults->CommitResults();
+						advanceAllTo(CDHRD);
 					}
 
 					if (mMKE[CDDTEN]->GetBitState() == BIT_LOW) {
 						//Read DATA case. Make only one packet with XOR of all values
 						frame.mStartingSampleInclusive = mMKE[CDDTEN]->GetSampleNumber();
 						frame.mData1 = 0;
-						printf("Read data\n");
 						bool dataStarted = false;
-						while((mMKE[CDDTEN]->GetBitState() == BIT_LOW) && (mMKE[CDEN]->GetBitState() == BIT_LOW)) {
-							if ((mMKE[CDHRD]->GetBitState() == BIT_HIGH) && (mMKE[CDEN]->GetBitState() == BIT_LOW)) advanceAllToEarlierNextEdge(CDHRD, CDEN); //LOW
+						while (!dataStarted || (mMKE[CDSTEN]->GetBitState() == BIT_LOW) || !CDavailable()) {
+						// while(((mMKE[CDDTEN]->GetBitState() == BIT_LOW) || (mMKE[CDMDCHG]->GetBitState() == BIT_HIGH)) && (mMKE[CDEN]->GetBitState() == BIT_LOW)) {
+							if ((mMKE[CDHRD]->GetBitState() == BIT_HIGH) && (mMKE[CDEN]->GetBitState() == BIT_LOW)) advanceAllToEarlierNextEdge(CDHRD, CDEN, BIT_LOW, BIT_HIGH); //LOW
 							if(mMKE[CDHRD]->GetBitState() == BIT_HIGH) {
 								//Interrupted due to CDEN HIGH
 								if (!dataStarted) {
 									//Data transmission did not start yet. Wait for CDEN LOW and resume
-									advanceAllToNextEdge(CDHRD); //LOW
+									while (mMKE[CDHRD]->GetBitState() == BIT_HIGH) advanceAllToNextEdge(CDHRD, BIT_LOW); //LOW
 								} else {
 									//Data transmission did start. Abort the data frame
 									break;
 								}
 							}
-							advanceAllToEarlierNextEdge(CDHRD, CDEN); // CDHRD HI
+							advanceAllToEarlierNextEdge(CDHRD, CDEN, BIT_HIGH, BIT_HIGH); // CDHRD HI
 							if(mMKE[CDHRD]->GetBitState() == BIT_LOW){
 								//Interrupted due to CDEN HIGH
 								if (!dataStarted) {
 									//Data transmission did not start yet. Wait for CDEN LOW and resume
-									advanceAllToNextEdge(CDHRD); //HIGH
+									while (mMKE[CDHRD]->GetBitState() == BIT_LOW)  advanceAllToNextEdge(CDHRD, BIT_HIGH); //HIGH
 								} else {
 									//Data transmission did start. Abort the data frame
 									break;
@@ -210,41 +232,27 @@ void MKEAnalyzer::WorkerThread()
 							}
 							if (mMKE[CDSTEN]->GetBitState() == BIT_LOW) dataStarted = true;
 							getDataBus(&data[0]);
-							printf("Data %x\n", data[0]);
-							frame.mData1 ^= data[0];
+							if (mMKE[CDDTEN]->GetBitState() == BIT_HIGH){
+								//Status
+								frame.mData2 = data[0];
+							} else {
+								frame.mData1 ^= data[0];
+							}
+							advanceAllTo(CDHRD); //sync values
 						}
 
 						if(mMKE[CDEN]->GetBitState() == BIT_HIGH) {
-/*							//Advance to get CDEN available again
-							advanceAllToNextEdge(CDEN);
+							//Advance to get CDEN available again
+							advanceAllToNextEdge(CDEN, BIT_LOW);
 							//In that case, status is sent after resume
 							//Now get the STATUS
-							if (mMKE[CDHRD]->GetBitState() == BIT_HIGH) advanceAllToNextEdge(CDHRD); //Low
-							advanceAllToNextEdge(CDHRD); //High
-							advanceAllToNextEdge(CDHRD); //Low
-							advanceAllToNextEdge(CDHRD); //High
+							if (mMKE[CDHRD]->GetBitState() == BIT_HIGH) advanceAllToNextEdge(CDHRD, BIT_LOW); //Low
+							advanceAllToNextEdge(CDHRD, BIT_HIGH); //High
+							advanceAllToNextEdge(CDHRD, BIT_LOW); //Low
+							advanceAllToNextEdge(CDHRD, BIT_HIGH); //High
 							getDataBus(&data[0]);
 							frame.mData2 = data[0];
-
-							//And read all values until CDDTEN is high
-							while(mMKE[CDDTEN]->GetBitState() == BIT_LOW) {
-								if ((mMKE[CDHRD]->GetBitState() == BIT_HIGH)&&(mMKE[CDDTEN]->GetBitState() == BIT_LOW)) advanceAllToEarlierNextEdge(CDHRD, CDDTEN); //LOW
-								if (mMKE[CDDTEN]->GetBitState() == BIT_HIGH) break;
-								advanceAllToNextEdge(CDHRD); //HIGH
-								getDataBus(&data[0]);
-								printf("Data %x\n", data[0]);
-								frame.mData1 ^= data[0];
-							}
-*/
-						} else {
-							//Get the status at the end
-							//Now get the STATUS
-							if (mMKE[CDHRD]->GetBitState() == BIT_HIGH) advanceAllToNextEdge(CDHRD);
-							advanceAllToNextEdge(CDHRD);
-							advanceAllToNextEdge(CDHRD);
-							advanceAllToNextEdge(CDHRD);
-							getDataBus(&data[0]);
-							frame.mData2 = data[0];
+							mFlags |= ABORTED_DATA;
 						}
 
 						frame.mEndingSampleInclusive = mMKE[CDHRD]->GetSampleNumber();
@@ -253,7 +261,7 @@ void MKEAnalyzer::WorkerThread()
 						mResults->CommitResults();
 					}
 
-					advanceAllToNextEdge(CDHWR);
+					advanceAllToNextEdge(CDHWR, BIT_LOW);
 					//Go to next command
 
 	        ReportProgress(frame.mEndingSampleInclusive);

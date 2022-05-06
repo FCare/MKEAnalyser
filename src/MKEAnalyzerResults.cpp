@@ -324,6 +324,7 @@ void MKEAnalyzerResults::getDataResponseTabular(Frame &frame) {
   U8 Status = (frame.mData2>>0)&0xFF;
   ss << "READ DATA 0x";
   ss << std::hex << +Xor;
+  if (frame.mFlags & ABORTED_DATA)  ss << ",Aborted";
   AddTabularText(ss.str().c_str());
   getStatusString(Status);
 }
