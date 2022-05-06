@@ -81,6 +81,7 @@ protected:  //vars
     std::vector<U64> mMarkerLocations;
 private:
     void getDataBus(U8 *data);
+    void advanceAllToEarlierNextEdge(input_s channelA, input_s channelB);
     void advanceAllToNextEdge(input_s channel);
 
 #ifdef _WIN32
