@@ -85,6 +85,7 @@ private:
     void advanceAllToNextEdge(input_s channel, U8 level);
     void advanceAllTo(input_s channel);
     bool CDavailable(void);
+    bool isLongHigh(input_s channel);
 
 #ifdef _WIN32
     #pragma warning( pop )
