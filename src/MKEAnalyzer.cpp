@@ -181,7 +181,7 @@ void MKEAnalyzer::WorkerThread()
 
 					if (mMKE[CDDTEN]->GetBitState() == BIT_LOW) {
 						//Read DATA case. Make only one packet with XOR of all values
-						frame.mStartingSampleInclusive = mMKE[CDHRD]->GetSampleNumber();
+						frame.mStartingSampleInclusive = mMKE[CDDTEN]->GetSampleNumber();
 						frame.mData1 = 0;
 						printf("Read data\n");
 						bool dataStarted = false;
@@ -191,7 +191,7 @@ void MKEAnalyzer::WorkerThread()
 								//Interrupted due to CDEN HIGH
 								if (!dataStarted) {
 									//Data transmission did not start yet. Wait for CDEN LOW and resume
-									advanceAllToNextEdge(CDEN);
+									advanceAllToNextEdge(CDHRD); //LOW
 								} else {
 									//Data transmission did start. Abort the data frame
 									break;
@@ -202,7 +202,7 @@ void MKEAnalyzer::WorkerThread()
 								//Interrupted due to CDEN HIGH
 								if (!dataStarted) {
 									//Data transmission did not start yet. Wait for CDEN LOW and resume
-									advanceAllToNextEdge(CDEN);
+									advanceAllToNextEdge(CDHRD); //HIGH
 								} else {
 									//Data transmission did start. Abort the data frame
 									break;
