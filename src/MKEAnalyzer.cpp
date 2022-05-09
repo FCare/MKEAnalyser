@@ -223,13 +223,15 @@ void MKEAnalyzer::WorkerThread()
 						mResults->CommitResults();
 						advanceAllTo(CDHRD);
 					}
-
+U16 nbData = 0;
+printf("Start Frame\n");
 					if (mMKE[CDDTEN]->GetBitState() == BIT_LOW) {
 						//Read DATA case. Make only one packet with XOR of all values
 						frame.mStartingSampleInclusive = mMKE[CDDTEN]->GetSampleNumber();
 						frame.mData1 = 0;
 						bool dataStarted = false;
 						while (!dataStarted || !isLongHigh(CDSTEN, CDHRD) || !CDavailable()) {
+							bool isStatus = false;
 							if ((mMKE[CDHRD]->GetBitState() == BIT_HIGH) && (mMKE[CDEN]->GetBitState() == BIT_LOW)) advanceAllToEarlierNextEdge(CDHRD, CDEN, BIT_LOW, BIT_HIGH); //LOW
 							if(mMKE[CDHRD]->GetBitState() == BIT_HIGH) {
 								//Interrupted due to CDEN HIGH
@@ -241,6 +243,7 @@ void MKEAnalyzer::WorkerThread()
 									break;
 								}
 							}
+							isStatus = (mMKE[CDDTEN]->GetBitState() == BIT_HIGH);
 							advanceAllToEarlierNextEdge(CDHRD, CDEN, BIT_HIGH, BIT_HIGH); // CDHRD HI
 							if(mMKE[CDHRD]->GetBitState() == BIT_LOW){
 								//Interrupted due to CDEN HIGH
@@ -254,10 +257,12 @@ void MKEAnalyzer::WorkerThread()
 							}
 							if (mMKE[CDSTEN]->GetBitState() == BIT_LOW) dataStarted = true;
 							getDataBus(&data[0]);
-							if (mMKE[CDDTEN]->GetBitState() == BIT_HIGH){
+							if (isStatus){
 								//Status
 								frame.mData2 = data[0];
 							} else {
+								nbData ++;
+								printf("0x%x\n", data[0]);
 								frame.mData1 ^= data[0];
 							}
 							advanceAllTo(CDHRD); //sync values
@@ -279,6 +284,7 @@ void MKEAnalyzer::WorkerThread()
 
 						frame.mEndingSampleInclusive = mMKE[CDHRD]->GetSampleNumber();
 						frame.mFlags = mFlags;
+						printf("Got %d samples\n", nbData);
 						mResults->AddFrame(frame);
 						mResults->CommitResults();
 					}
