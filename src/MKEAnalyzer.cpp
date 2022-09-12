@@ -33,10 +33,6 @@ void MKEAnalyzer::getDataBus(U8 *data) {
 	}
 }
 
-bool MKEAnalyzer::CDavailable(void) {
-	return (mMKE[CDMDCHG]->GetBitState() == BIT_LOW);
-}
-
 void MKEAnalyzer::advanceAllToEarlierNextEdge(input_s channelA, input_s channelB, U8 levelA, U8 levelB) {
 	bool isAdvancing = true;
 	while (isAdvancing) {
@@ -52,7 +48,7 @@ void MKEAnalyzer::advanceAllToEarlierNextEdge(input_s channelA, input_s channelB
 			else
 			mMKE[i]->AdvanceToAbsPosition(sampleNb);
 		}
-		isAdvancing = !CDavailable() || (mMKE[earlierChannel]->GetBitState() != level);
+		isAdvancing = (mMKE[earlierChannel]->GetBitState() != level);
 	}
 }
 
@@ -66,7 +62,7 @@ void MKEAnalyzer::advanceAllToNextEdge(input_s channel, U8 level) {
 			else
 				mMKE[i]->AdvanceToAbsPosition(sampleNb);
 		}
-		isAdvancing = !CDavailable();
+		isAdvancing = false;
 	}
 }
 
@@ -92,7 +88,6 @@ bool MKEAnalyzer::isLongHigh(input_s channel, input_s channelTest) {
 			for (int i = 0; i< CD_MAX; i++) {
 					mMKE[i]->AdvanceToAbsPosition(sampleNb);
 			}
-			if (!CDavailable()) return false;
 			U64 currentSample = mMKE[channel]->GetSampleNumber();
 			U64 nextEdge = mMKE[channel]->GetSampleOfNextEdge();
 			if ((nextEdge - currentSample)>1000) return true;
@@ -117,7 +112,6 @@ void MKEAnalyzer::WorkerThread()
 	        U8 mFlags = 0;
 
 					while ( (mMKE[CDHWR]->GetBitState() == BIT_HIGH)    ||
-									(mMKE[CDMDCHG]->GetBitState() == BIT_HIGH) ||
 									(mMKE[CDRST]->GetBitState() == BIT_LOW)    ||
 									(mMKE[CDEN]->GetBitState() == BIT_HIGH)
 								) {

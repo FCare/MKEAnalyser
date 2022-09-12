@@ -190,8 +190,56 @@ void MKEAnalyzerResults::getCmdRequestTabular(Frame &frame) {
     case READ_DRIVER:
       AddTabularText("CMD: WTF? READ DRIVER");
       break;
-    case DRIVE_RESET:
-      AddTabularText("CMD: WTF? DRIVE RESET");
+    case EXT_ID:
+      AddTabularText("CMD: EXT_ID");
+      break;
+    case CHANGE_TOC:
+      AddTabularText("CMD: CHANGE_TOC");
+      break;
+    case GET_TOC:
+      AddTabularText("CMD: GET_TOC");
+      break;
+    case GET_DESC:
+      AddTabularText("CMD: GET_DESC");
+      break;
+    case CLEAR_PLAYLIST:
+      AddTabularText("CMD: CLEAR_PLAYLIST");
+      break;
+    case ADD_PLAYLIST:
+      AddTabularText("CMD: ADD_PLAYLIST");
+      break;
+    case LAUNCH_PLAYLIST:
+      AddTabularText("CMD: LAUNCH_PLAYLIST");
+      break;
+    case GET_TOC_LIST:
+      AddTabularText("CMD: GET_TOC_LIST");
+      break;
+    case CREATE_FILE:
+      AddTabularText("CMD: CREATE_FILE");
+      break;
+    case OPEN_FILE:
+      AddTabularText("CMD: OPEN_FILE");
+      break;
+    case SEEK_FILE:
+      AddTabularText("CMD: SEEK_FILE");
+      break;
+    case READ_FILE_BYTE:
+      AddTabularText("CMD: READ_FILE_BYTE");
+      break;
+    case WRITE_FILE_BYTE:
+      AddTabularText("CMD: WRITE_FILE_BYTE");
+      break;
+    case CLOSE_FILE:
+      AddTabularText("CMD: CLOSE_FILE");
+      break;
+    case WRITE_BUFFER_OFFSET:
+      AddTabularText("CMD: WRITE_BUFFER_OFFSET");
+      break;
+    case READ_BUFFER:
+      AddTabularText("CMD: READ_BUFFER");
+      break;
+    case UPDATE_ODE:
+      AddTabularText("CMD: UPDATE_ODE");
       break;
     default:
       AddTabularText("CMD: Unknown CMD");
@@ -307,8 +355,56 @@ void MKEAnalyzerResults::getCmdBubble(Frame &frame) {
     case READ_DRIVER:
       AddResultString("WTF? READ DRIVER");
       break;
-    case DRIVE_RESET:
-      AddResultString("WTF? DRIVE RESET");
+    case EXT_ID:
+      AddResultString("CMD: EXT_ID");
+      break;
+    case CHANGE_TOC:
+      AddResultString("CMD: CHANGE_TOC");
+      break;
+    case GET_TOC:
+      AddResultString("CMD: GET_TOC");
+      break;
+    case GET_DESC:
+      AddResultString("CMD: GET_DESC");
+      break;
+    case CLEAR_PLAYLIST:
+      AddResultString("CMD: CLEAR_PLAYLIST");
+      break;
+    case ADD_PLAYLIST:
+      AddResultString("CMD: ADD_PLAYLIST");
+      break;
+    case LAUNCH_PLAYLIST:
+      AddResultString("CMD: LAUNCH_PLAYLIST");
+      break;
+    case GET_TOC_LIST:
+      AddResultString("CMD: GET_TOC_LIST");
+      break;
+    case CREATE_FILE:
+      AddResultString("CMD: CREATE_FILE");
+      break;
+    case OPEN_FILE:
+      AddResultString("CMD: OPEN_FILE");
+      break;
+    case SEEK_FILE:
+      AddResultString("CMD: SEEK_FILE");
+      break;
+    case READ_FILE_BYTE:
+      AddResultString("CMD: READ_FILE_BYTE");
+      break;
+    case WRITE_FILE_BYTE:
+      AddResultString("CMD: WRITE_FILE_BYTE");
+      break;
+    case CLOSE_FILE:
+      AddResultString("CMD: CLOSE_FILE");
+      break;
+    case WRITE_BUFFER_OFFSET:
+      AddResultString("CMD: WRITE_BUFFER_OFFSET");
+      break;
+    case READ_BUFFER:
+      AddResultString("CMD: READ_BUFFER");
+      break;
+    case UPDATE_ODE:
+      AddResultString("CMD: UPDATE_ODE");
       break;
     default:
       ss << "Unknown CMD 0x";
@@ -494,11 +590,59 @@ void MKEAnalyzerResults::getCmdResponseTabular(Frame &frame) {
     case READ_DRIVER:
       AddTabularText("RESP: WTF? READ DRIVER");
       break;
-    case DRIVE_RESET:
-      AddTabularText("RESP: WTF? DRIVE RESET");
+    case EXT_ID:
+      AddTabularText("RESP: EXT_ID");
+      break;
+    case CHANGE_TOC:
+      AddTabularText("RESP: CHANGE_TOC");
+      break;
+    case GET_TOC:
+      AddTabularText("RESP: GET_TOC");
+      break;
+    case GET_DESC:
+      AddTabularText("RESP: GET_DESC");
+      break;
+    case CLEAR_PLAYLIST:
+      AddTabularText("RESP: CLEAR_PLAYLIST");
+      break;
+    case ADD_PLAYLIST:
+      AddTabularText("RESP: ADD_PLAYLIST");
+      break;
+    case LAUNCH_PLAYLIST:
+      AddTabularText("RESP: LAUNCH_PLAYLIST");
+      break;
+    case GET_TOC_LIST:
+      AddTabularText("RESP: GET_TOC_LIST");
+      break;
+    case CREATE_FILE:
+      AddTabularText("RESP: CREATE_FILE");
+      break;
+    case OPEN_FILE:
+      AddTabularText("RESP: OPEN_FILE");
+      break;
+    case SEEK_FILE:
+      AddTabularText("RESP: SEEK_FILE");
+      break;
+    case READ_FILE_BYTE:
+      AddTabularText("RESP: READ_FILE_BYTE");
+      break;
+    case WRITE_FILE_BYTE:
+      AddTabularText("RESP: WRITE_FILE_BYTE");
+      break;
+    case CLOSE_FILE:
+      AddTabularText("RESP: CLOSE_FILE");
+      break;
+    case WRITE_BUFFER_OFFSET:
+      AddTabularText("RESP: WRITE_BUFFER_OFFSET");
+      break;
+    case READ_BUFFER:
+      AddTabularText("RESP: READ_BUFFER");
+      break;
+    case UPDATE_ODE:
+      AddTabularText("RESP: UPDATE_ODE");
       break;
     default:
-      ss << "Unknown CMD 0x";
+      ss << "Unknown RESP 0x";
       ss << std::hex << +Cmd;
       AddTabularText(ss.str().c_str());
       break;

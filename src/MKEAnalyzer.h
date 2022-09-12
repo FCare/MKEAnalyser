@@ -40,7 +40,27 @@ typedef enum {
   READ_TOC       = 0x8C,
   READ_SESSION   = 0x8D,
   READ_DRIVER    = 0x8E,
-  DRIVE_RESET    = 0x93
+  EXT_ID = 0x93,
+  CHANGE_TOC = 0xC0,
+  GET_TOC = 0xC1,
+  GET_DESC = 0xC2,
+  CLEAR_PLAYLIST = 0xC3,
+  ADD_PLAYLIST = 0xC4,
+  LAUNCH_PLAYLIST = 0xC5,
+
+  GET_TOC_LIST = 0xD1,
+
+  CREATE_FILE = 0xE0,
+  OPEN_FILE = 0xE1,
+  SEEK_FILE = 0xE2,
+  READ_FILE_BYTE = 0xE3,
+  WRITE_FILE_BYTE = 0xE4,
+  CLOSE_FILE = 0xE5,
+  WRITE_BUFFER_OFFSET = 0xE6,
+  READ_BUFFER = 0xE7,
+
+  UPDATE_ODE = 0xF0,
+
 } commandCode;
 
 class MKEAnalyzerSettings;
@@ -84,7 +104,6 @@ private:
     void advanceAllToEarlierNextEdge(input_s channelA, input_s channelB, U8 levelA, U8 levelB);
     void advanceAllToNextEdge(input_s channel, U8 level);
     void advanceAllTo(input_s channel);
-    bool CDavailable(void);
     bool isLongHigh(input_s channel, input_s channelTest);
 
 #ifdef _WIN32
